@@ -1,6 +1,6 @@
 var settings = {
     mqtt: {
-        host: process.env.MQTT_HOST || '',
+        host: process.env.MQTT_HOST || 'tcp://127.0.0.1:1883',
         user: process.env.MQTT_USER || '',
         password: process.env.MQTT_PASS || '',
         clientId: process.env.MQTT_CLIENT_ID || null
@@ -11,7 +11,7 @@ var settings = {
     },
     debug: process.env.DEBUG_MODE || false,
     auth_key: process.env.AUTH_KEY || '',
-    http_port: process.env.PORT || 5000
+    http_port: process.env.PORT || 8082
 }
 
 var mqtt = require('mqtt');
