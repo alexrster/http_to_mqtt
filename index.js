@@ -1,6 +1,6 @@
 var settings = {
     mqtt: {
-        host: process.env.MQTT_HOST || 'tcp://10.9.9.224:1883',
+        host: process.env.MQTT_HOST || '',
         user: process.env.MQTT_USER || '',
         password: process.env.MQTT_PASS || '',
         clientId: process.env.MQTT_CLIENT_ID || null
