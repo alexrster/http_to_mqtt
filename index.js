@@ -1,6 +1,6 @@
 var settings = {
     mqtt: {
-        host: process.env.MQTT_HOST || '',
+        host: process.env.MQTT_HOST || 'tcp://10.9.9.224:1883',
         user: process.env.MQTT_USER || '',
         password: process.env.MQTT_PASS || '',
         clientId: process.env.MQTT_CLIENT_ID || null
@@ -144,17 +144,17 @@ app.get('/subscribe/', logRequest, authorizeUser, function (req, res) {
     }
 });
 
-app.post('/api/v1/webhooks/calendar/onEventStart', logRequest, authorizeUser, function (req, res) {
+app.post('/api/v1/webhooks/calendar/onEventStart', function (req, res) {
     if (!!req.body.event) {
-        mqttClient.publish('ay/calendar/events/current', req.body.event);
+        mqttClient.publish('ay/calendar/events/current', JSON.stringify(req.body.event));
 
-        mqttClient.publish('ay/calendar/events/current/id', req.body.event.id);
-        mqttClient.publish('ay/calendar/events/current/link', req.body.event.link);
-        mqttClient.publish('ay/calendar/events/current/title', req.body.event.title);
-        mqttClient.publish('ay/calendar/events/current/status', req.body.event.status);
-        mqttClient.publish('ay/calendar/events/current/location', req.body.event.location);
-        mqttClient.publish('ay/calendar/events/current/startTime', req.body.event.startTime);
-        mqttClient.publish('ay/calendar/events/current/endTime', req.body.event.endTime);
+        mqttClient.publish('ay/calendar/events/current/id', String(req.body.event.id));
+        mqttClient.publish('ay/calendar/events/current/link', String(req.body.event.link));
+        mqttClient.publish('ay/calendar/events/current/title', String(req.body.event.title));
+        mqttClient.publish('ay/calendar/events/current/status', String(req.body.event.status));
+        mqttClient.publish('ay/calendar/events/current/location', String(req.body.event.location));
+        mqttClient.publish('ay/calendar/events/current/startTime', String(req.body.event.startTime));
+        mqttClient.publish('ay/calendar/events/current/endTime', String(req.body.event.endTime));
 
         res.status(200).send();
     }
