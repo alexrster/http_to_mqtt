@@ -144,6 +144,25 @@ app.get('/subscribe/', logRequest, authorizeUser, function (req, res) {
     }
 });
 
+app.post('/api/v1/webhooks/calendar/onEventStart', logRequest, authorizeUser, function (req, res) {
+    if (!!req.body.event) {
+        mqttClient.publish('ay/calendar/events/current', req.body.event);
+
+        mqttClient.publish('ay/calendar/events/current/id', req.body.event.id);
+        mqttClient.publish('ay/calendar/events/current/link', req.body.event.link);
+        mqttClient.publish('ay/calendar/events/current/title', req.body.event.title);
+        mqttClient.publish('ay/calendar/events/current/status', req.body.event.status);
+        mqttClient.publish('ay/calendar/events/current/location', req.body.event.location);
+        mqttClient.publish('ay/calendar/events/current/startTime', req.body.event.startTime);
+        mqttClient.publish('ay/calendar/events/current/endTime', req.body.event.endTime);
+
+        res.status(200).send();
+    }
+    else {
+        res.status(400).send('Bad Request');
+    }
+});
+
 app.listen(app.get('port'), function () {
     console.log('Node app is running on port', app.get('port'));
 });
