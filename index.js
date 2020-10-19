@@ -12,7 +12,7 @@ var settings = {
     debug: process.env.DEBUG_MODE || false,
     auth_key: process.env.AUTH_KEY || '',
     http_port: process.env.PORT || 8082
-}
+};
 
 var mqtt = require('mqtt');
 var express = require('express');
@@ -29,7 +29,7 @@ function getMqttClient() {
     };
 
     if (settings.mqtt.clientId) {
-        options.clientId = settings.mqtt.clientId
+        options.clientId = settings.mqtt.clientId;
     }
 
     return mqtt.connect(settings.mqtt.host, options);
@@ -163,6 +163,6 @@ app.post('/api/v1/webhooks/calendar/onEventStart', function (req, res) {
     }
 });
 
-app.listen(app.get('port'), function () {
+app.listen(app.get('port'), '0.0.0.0', function () {
     console.log('Node app is running on port', app.get('port'));
 });
