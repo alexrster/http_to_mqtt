@@ -144,14 +144,17 @@ app.get('/subscribe/', logRequest, authorizeUser, function (req, res) {
     }
 });
 
-app.post('/api/v1/webhooks/calendar/onEventStart', function (req, res) {
+app.post('/api/v1/webhooks/calendar/onEventStart', logRequest, function (req, res) {
     if (!!req.body.event) {
         var startTime = Date.parse(req.body.event.startTime);
         var endTime = Date.parse(req.body.event.endTime);
-        var nowSeconds = new Date().getUTCSeconds();
-        var timeout = endTime.getUTCSeconds() - nowSeconds - 120;
+        var now = Date.now();
+        var remeaningTime = endTime - now;
 
-        if (Math.abs(nowSeconds - startTime.getUTCSeconds()) <= 120 && timeout > 0) {
+        console.log(`  onEventStart(${req.body.event.id}): now=${now}; startTime=${startTime}; endTime=${endTime}; remeaningTime=${remeaningTime}`);
+
+        if (Math.abs(startTime - now) >= 120 && remeaningTime >= 120) {
+            console.log('  --> send event to MQTT')
             mqttClient.publish('ay/calendar/events/current', JSON.stringify(req.body.event), {qos: 1, retain: true});
 
             mqttClient.publish('ay/calendar/events/current/id', String(req.body.event.id), {qos: 1, retain: true});
@@ -159,10 +162,12 @@ app.post('/api/v1/webhooks/calendar/onEventStart', function (req, res) {
             mqttClient.publish('ay/calendar/events/current/title', String(req.body.event.title), {qos: 1, retain: true});
             mqttClient.publish('ay/calendar/events/current/status', String(req.body.event.status), {qos: 1, retain: true});
             mqttClient.publish('ay/calendar/events/current/location', String(req.body.event.location), {qos: 1, retain: true});
-            mqttClient.publish('ay/calendar/events/current/startTime', String(req.body.event.startTime), {qos: 1, retain: true});
-            mqttClient.publish('ay/calendar/events/current/endTime', String(req.body.event.endTime), {qos: 1, retain: true});
+            mqttClient.publish('ay/calendar/events/current/startTime', String(startTime), {qos: 1, retain: true});
+            mqttClient.publish('ay/calendar/events/current/endTime', String(endTime), {qos: 1, retain: true});
 
             setTimeout(() => {
+                console.log(`  onEventCleanup(${req.body.event.id}): startTime=${startTime}; endTime=${endTime}; remeaningTime=${remeaningTime}`);
+
                 mqttClient.publish('ay/calendar/events/current', '', {qos: 1, retain: true});
 
                 mqttClient.publish('ay/calendar/events/current/id', '', {qos: 1, retain: true});
@@ -172,7 +177,10 @@ app.post('/api/v1/webhooks/calendar/onEventStart', function (req, res) {
                 mqttClient.publish('ay/calendar/events/current/location', '', {qos: 1, retain: true});
                 mqttClient.publish('ay/calendar/events/current/startTime', '', {qos: 1, retain: true});
                 mqttClient.publish('ay/calendar/events/current/endTime', '', {qos: 1, retain: true});
-            }, timeout * 1000);
+            }, remeaningTime - 30*1000); // perform cleanup 30 seconds before 'endTime'
+        }
+        else {
+            console.log('Ignoring - ', remeaningTime > 0 ? 'future event' : 'past event')
         }
 
         res.status(200).send();
